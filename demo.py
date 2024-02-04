@@ -18,7 +18,7 @@ class Contents:
         self.address = address
         self.time = time
 
-
+# 从贴吧主页得到从firstPage到lastPage的帖子的Url
 def getPostingUrls(url, firstPage, lastPage):
     url = url[:url.find("pn=")]
     postingUrlLists = []
@@ -35,6 +35,7 @@ def getPostingUrls(url, firstPage, lastPage):
     return postingUrlLists
 
 
+# 写入CSV中
 def writeCSV(filename, userNames, userUrls, contentList, imgUrlList, userAddress, contentTimes):
     newUserContents = []
     for i in range(len(userUrls)):
@@ -52,15 +53,7 @@ def writeCSV(filename, userNames, userUrls, contentList, imgUrlList, userAddress
 
         writer.writerows(data)  # 写入数据行
 
-
-def getPostingReplys(url):
-    chrome = webdriver.Chrome()
-    chrome.get(url)
-    html = chrome.page_source
-    print(html)
-    chrome.quit()
-
-
+# 从postingUrlLists遍历得到帖子的信息
 def getPostingInfo(postingUrlLists):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -82,67 +75,42 @@ def getPostingInfo(postingUrlLists):
                 newPostingUrl = postingUrl + "?pn=" + str(page)
                 response = requests.get(newPostingUrl, headers=headers).text
                 content = ET.HTML(response)
-                # userNames = content.xpath(
-                #     '//div[@class="l_post l_post_bright j_l_post clearfix  "]//div[@class="d_author"]//ul[@class="p_author"]/li[@class="d_name"]/a/text()')
-                # userUrls = content.xpath(
-                #     '//div[@class="l_post l_post_bright j_l_post clearfix  "]//div[@class="d_author"]//ul[@class="p_author"]/li[@class="d_name"]/a/@href')
-                # contentList = []
-                # imgUrlList = []
-                # userAddress = content.xpath(
-                #     '//div[@class="l_post l_post_bright j_l_post clearfix  "]//div[contains(@class,"d_post_content_main")]/div[@class="core_reply j_lzl_wrapper"]//div[@class="post-tail-wrap"]/span[contains(text(),"IP")]/text()')
-                # contentTimes = content.xpath(
-                #     '//div[@class="l_post l_post_bright j_l_post clearfix  "]//div[contains(@class,"d_post_content_main")]/div[@class="core_reply j_lzl_wrapper"]//div[@class="post-tail-wrap"]/span[contains(text(),"-")]/text()')
-                # userContents = content.xpath(
-                #     '//div[@class="d_post_content j_d_post_content "]')
-                # for root in userContents:
-                #     imgs = root.findall("img")
-                #     if imgs != None:
-                #         imgList = []
-                #         for img in imgs:
-                #             imgList.append(img.get("src"))
-                #         imgUrlList.append(imgList)
-                #     else:
-                #         imgUrlList.append("")
-                #     contentList.append(root.text)
+                userNames = content.xpath(
+                    '//div[@class="l_post l_post_bright j_l_post clearfix  "]//div[@class="d_author"]//ul[@class="p_author"]/li[@class="d_name"]/a/text()')
+                userUrls = content.xpath(
+                    '//div[@class="l_post l_post_bright j_l_post clearfix  "]//div[@class="d_author"]//ul[@class="p_author"]/li[@class="d_name"]/a/@href')
+                contentList = []
+                imgUrlList = []
+                userAddress = content.xpath(
+                    '//div[@class="l_post l_post_bright j_l_post clearfix  "]//div[contains(@class,"d_post_content_main")]/div[@class="core_reply j_lzl_wrapper"]//div[@class="post-tail-wrap"]/span[contains(text(),"IP")]/text()')
+                contentTimes = content.xpath(
+                    '//div[@class="l_post l_post_bright j_l_post clearfix  "]//div[contains(@class,"d_post_content_main")]/div[@class="core_reply j_lzl_wrapper"]//div[@class="post-tail-wrap"]/span[contains(text(),"-")]/text()')
+                userContents = content.xpath(
+                    '//div[@class="d_post_content j_d_post_content "]')
+                for root in userContents:
+                    imgs = root.findall("img")
+                    if imgs != None:
+                        imgList = []
+                        for img in imgs:
+                            imgList.append(img.get("src"))
+                        imgUrlList.append(imgList)
+                    else:
+                        imgUrlList.append("")
+                    contentList.append(root.text)
 
-                # writeCSV(filename, userNames, userUrls, contentList, imgUrlList, userAddress, contentTimes)
+                writeCSV(filename, userNames, userUrls, contentList, imgUrlList, userAddress, contentTimes)
 
             # time.sleep(3)
-            # replys = getPostingReplys(url)
-
-            # replyUserNames=
-            # replyUrls
-            # replyContents
-            # replyTimes
-            # for i in range(len(userContents)):
-            #     print(userNames[i]+"\t"+"https://tieba.baidu.com"+userUrls[i]+"\t"+userContents[i]+"\t"+userAddress[i]+"\t"+str(contentTimes[i]))
 
 
-def teibaSpider(url):
-    # postingUrlLists=getPostingUrls(url,0,0)
-    postingUrlLists = [["https://tieba.baidu.com/p/8739749136"]]
+def baiduSpider(url):
+    postingUrlLists = getPostingUrls(url, 0, 0)
+    # postingUrlLists = [["https://tieba.baidu.com/p/8739749136"]]
     getPostingInfo(postingUrlLists)
 
 
 if __name__ == '__main__':
     # 某个吧的url(如足球吧)
-    # url = 'https://tieba.baidu.com/f?kw=%E8%B6%B3%E7%90%83&ie=utf-8&pn=0'
-    #
-    # teibaSpider(url)
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    }
-    url1="https://tieba.baidu.com/p/totalComment?tid=8739749136"
-    contents = requests.get(url1, headers=headers).text
-    json_obj = json.loads(contents)
-    json_obj=json_obj['data']['comment_list']
-    json_form = json.dumps(json_obj, indent=4)
-    # print(json_form)
-    for comment_id,comment_info in json_obj.items():
-        comment_info_list = comment_info['comment_info']
-        for comment in comment_info_list:
-            # 获取评论的content值
-            content = comment['content']
-            print(content)
+    url = 'https://tieba.baidu.com/f?kw=%E8%B6%B3%E7%90%83&ie=utf-8&pn=0'
 
-
+    baiduSpider(url)
