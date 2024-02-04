@@ -1,13 +1,10 @@
 import json
 import time
-
 import csv
 import os
-
 import requests
 from lxml import etree as ET
-from selenium import webdriver
-
+from tqdm import tqdm
 
 class Contents:
     def __init__(self, userName, homeUrl, text, imgUrl, address, time):
@@ -114,13 +111,17 @@ def getPostingInfo(postingUrlLists, headers):
             content = ET.HTML(response)
             pageNum = content.xpath(
                 '//li[@class="l_pager pager_theme_5 pb_list_pager"]//a[contains(text(),"尾页")]/@href')
-            pageNum = pageNum[0][-1:]
+            if len(pageNum)==0:
+                pageNum=1
+            else:
+                pageNum = pageNum[0][-1:]
+
             tid = postingUrl[postingUrl.find("/p/") + 3:]
             folder_path = "csv/" + tid
             os.makedirs(folder_path, exist_ok=True)
             filename = folder_path + "/contents.csv"
             # for page in range(1):
-            for page in range(int(pageNum)):
+            for page in tqdm(range(int(pageNum))):
                 page += 1
                 newPostingUrl = postingUrl + "?pn=" + str(page)
                 response = requests.get(newPostingUrl, headers=headers).text
@@ -151,15 +152,14 @@ def getPostingInfo(postingUrlLists, headers):
                 writeCSV(filename, userNames, userUrls, contentList, imgUrlList, userAddress, contentTimes)
             getReplyInfo(headers, tid)
 
-            time.sleep(3)
 
 
 def baiduSpider(url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     }
-    # postingUrlLists = getPostingUrls(url, 0, 0)
-    postingUrlLists = [["https://tieba.baidu.com/p/8884627876"]]
+    postingUrlLists = getPostingUrls(url, 0, 0)
+    # postingUrlLists = [["https://tieba.baidu.com/p/8886978135"]]
     getPostingInfo(postingUrlLists, headers)
 
 
